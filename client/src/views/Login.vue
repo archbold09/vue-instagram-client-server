@@ -10,6 +10,8 @@
           <h1 class="text-center">
             Aqui <strong>comienza</strong> tu propia <strong>galería</strong>.
           </h1>
+
+          <p v-show="error">{{ error }}</p>
           <form @submit.prevent="login">
             <input
               name="email"
@@ -48,6 +50,7 @@
   </main>
 </template>
 <script>
+import API from "@/api";
 import { ValidationProvider, extend } from "vee-validate";
 extend("email", (value) => {
   if (value.length > 2) {
@@ -60,25 +63,27 @@ export default {
     return {
       email: "",
       password: "",
+      error: false,
     };
   },
   components: { ValidationProvider },
   methods: {
     async login() {
-      let URL = "http://localhost:3000/api/users/login";
-      let data = {
+      let URL = "/users/login";
+      API.post(URL, {
         email: this.email,
         password: this.password,
-      };
-      const response = await fetch(URL, {
-        method: "POST", // *GET, POST, PUT, DELETE, etc.
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data), // body data type must match "Content-Type" headers
       })
-        .then((res) => res.json())
-        .then((res) => console.log(res))
+        .then((res) => {
+          if (res.data.error) {
+            this.error = res.data.error;
+          }
+          if (res.data.token) {
+            this.$store.commit("setToken", res.data.token);
+            API.defaults.headers.common['Authorization'] = res.data.token
+            this.$router.push("/");
+          }
+        })
         .catch((error) => {
           console.log(`Error: ${error.message}`);
         });

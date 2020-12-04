@@ -18,7 +18,11 @@
               v-model="email"
             />
             <input type="password" placeholder="*******" v-model="password" />
-            <input type="password" placeholder="*******" v-model="passwordConfirm" />
+            <input
+              type="password"
+              placeholder="*******"
+              v-model="passwordConfirm"
+            />
 
             <p class="text-center">O también puedes</p>
             <p class="text-center">
@@ -67,9 +71,9 @@ export default {
   components: { ValidationProvider },
   methods: {
     async register() {
-        if(this.password != this.passwordConfirm){
-            return alert('password not work')
-        }
+      if (this.password != this.passwordConfirm) {
+        return alert("password not work");
+      }
       let URL = "http://localhost:3000/api/users/register";
       let data = {
         email: this.email,
@@ -84,7 +88,12 @@ export default {
         body: JSON.stringify(data), // body data type must match "Content-Type" headers
       })
         .then((res) => res.json())
-        .then((res) => console.log(res))
+        .then((res) => {
+          if ( res.token) {
+            this.$store.commit("setToken", res.token);
+          }
+          this.$router.push("/");
+        })
         .catch((error) => {
           console.log(`Error: ${error.message}`);
         });
